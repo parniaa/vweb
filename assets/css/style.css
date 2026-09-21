@@ -233,6 +233,10 @@ main,
 
 .hero {
   display: grid;
+  grid-template-areas:
+    "copy"
+    "card"
+    "proof";
   gap: 28px;
   min-height: calc(100vh - 86px);
   align-items: center;
@@ -240,6 +244,7 @@ main,
 }
 
 .hero-copy {
+  grid-area: copy;
   max-width: 760px;
 }
 
@@ -342,10 +347,10 @@ p {
 }
 
 .proof-grid {
+  grid-area: proof;
   display: grid;
   grid-template-columns: 1fr;
   gap: 10px;
-  margin-top: 32px;
 }
 
 .proof-grid div,
@@ -384,12 +389,14 @@ p {
 }
 
 .hero-card {
+  grid-area: card;
   display: grid;
   gap: 14px;
   align-content: end;
 }
 
 .portrait {
+  aspect-ratio: 4 / 5;
   overflow: hidden;
   border: 1px solid rgba(216, 255, 109, 0.2);
   border-radius: 8px;
@@ -400,9 +407,10 @@ p {
 
 .portrait img {
   width: 100%;
-  aspect-ratio: 1 / 1.05;
+  height: 100%;
   object-fit: cover;
-  object-position: center 22%;
+  object-position: 48% 56%;
+  transform: scale(1.14);
 }
 
 .profile-summary {
@@ -699,7 +707,10 @@ body.motion-ready .reveal-section.is-visible {
 @media (min-width: 760px) {
   .hero {
     grid-template-columns: minmax(0, 1.35fr) minmax(230px, 0.65fr);
-    gap: 32px;
+    grid-template-areas:
+      "copy card"
+      "proof card";
+    gap: 28px 32px;
   }
 }
 
@@ -724,8 +735,11 @@ body.motion-ready .reveal-section.is-visible {
   }
 
   .hero {
-    grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.75fr);
-    gap: 52px;
+    grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.85fr);
+    grid-template-areas:
+      "copy card"
+      "proof card";
+    gap: 32px 52px;
   }
 
   h1 {
