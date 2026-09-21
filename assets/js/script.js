@@ -1,159 +1,104 @@
-'use strict';
+"use strict";
 
+const year = document.querySelector("#year");
 
-
-// element toggle function
-const elementToggleFunc = function (elem) { elem.classList.toggle("active"); }
-
-
-
-// sidebar variables
-const sidebar = document.querySelector("[data-sidebar]");
-const sidebarBtn = document.querySelector("[data-sidebar-btn]");
-
-// sidebar toggle functionality for mobile
-sidebarBtn.addEventListener("click", function () { elementToggleFunc(sidebar); });
-
-
-
-// // testimonials variables
-// const testimonialsItem = document.querySelectorAll("[data-testimonials-item]");
-// const modalContainer = document.querySelector("[data-modal-container]");
-// const modalCloseBtn = document.querySelector("[data-modal-close-btn]");
-// const overlay = document.querySelector("[data-overlay]");
-
-// // modal variable
-// const modalImg = document.querySelector("[data-modal-img]");
-// const modalTitle = document.querySelector("[data-modal-title]");
-// const modalText = document.querySelector("[data-modal-text]");
-
-// // modal toggle function
-// const testimonialsModalFunc = function () {
-//   modalContainer.classList.toggle("active");
-//   overlay.classList.toggle("active");
-// }
-
-// // add click event to all modal items
-// for (let i = 0; i < testimonialsItem.length; i++) {
-
-//   testimonialsItem[i].addEventListener("click", function () {
-
-//     modalImg.src = this.querySelector("[data-testimonials-avatar]").src;
-//     modalImg.alt = this.querySelector("[data-testimonials-avatar]").alt;
-//     modalTitle.innerHTML = this.querySelector("[data-testimonials-title]").innerHTML;
-//     modalText.innerHTML = this.querySelector("[data-testimonials-text]").innerHTML;
-
-//     testimonialsModalFunc();
-
-//   });
-
-// }
-
-// // add click event to modal close button
-// modalCloseBtn.addEventListener("click", testimonialsModalFunc);
-// overlay.addEventListener("click", testimonialsModalFunc);
-
-
-
-// custom select variables
-const select = document.querySelector("[data-select]");
-const selectItems = document.querySelectorAll("[data-select-item]");
-const selectValue = document.querySelector("[data-selecct-value]");
-const filterBtn = document.querySelectorAll("[data-filter-btn]");
-
-select.addEventListener("click", function () { elementToggleFunc(this); });
-
-// add event in all select items
-for (let i = 0; i < selectItems.length; i++) {
-  selectItems[i].addEventListener("click", function () {
-
-    let selectedValue = this.innerText.toLowerCase();
-    selectValue.innerText = this.innerText;
-    elementToggleFunc(select);
-    filterFunc(selectedValue);
-
-  });
+if (year) {
+  year.textContent = new Date().getFullYear();
 }
 
-// filter variables
-const filterItems = document.querySelectorAll("[data-filter-item]");
+const sections = Array.from(document.querySelectorAll(".snap-section"));
+const navLinks = Array.from(document.querySelectorAll(".nav-links a"));
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+const desktopSnap = window.matchMedia("(min-width: 900px)");
 
-const filterFunc = function (selectedValue) {
-
-  for (let i = 0; i < filterItems.length; i++) {
-
-    if (selectedValue === "all") {
-      filterItems[i].classList.add("active");
-    } else if (selectedValue === filterItems[i].dataset.category) {
-      filterItems[i].classList.add("active");
-    } else {
-      filterItems[i].classList.remove("active");
-    }
-
-  }
-
+if (!reducedMotion.matches) {
+  document.body.classList.add("motion-ready");
 }
 
-// add event in all filter button items for large screen
-let lastClickedBtn = filterBtn[0];
-
-for (let i = 0; i < filterBtn.length; i++) {
-
-  filterBtn[i].addEventListener("click", function () {
-
-    let selectedValue = this.innerText.toLowerCase();
-    selectValue.innerText = this.innerText;
-    filterFunc(selectedValue);
-
-    lastClickedBtn.classList.remove("active");
-    this.classList.add("active");
-    lastClickedBtn = this;
-
-  });
-
-}
-
-
-
-// contact form variables
-const form = document.querySelector("[data-form]");
-const formInputs = document.querySelectorAll("[data-form-input]");
-const formBtn = document.querySelector("[data-form-btn]");
-
-// add event to all form input field
-for (let i = 0; i < formInputs.length; i++) {
-  formInputs[i].addEventListener("input", function () {
-
-    // check form validation
-    if (form.checkValidity()) {
-      formBtn.removeAttribute("disabled");
-    } else {
-      formBtn.setAttribute("disabled", "");
-    }
-
-  });
-}
-
-
-
-// page navigation variables
-const navigationLinks = document.querySelectorAll("[data-nav-link]");
-const pages = document.querySelectorAll("[data-page]");
-
-// add event to all nav link
-for (let i = 0; i < navigationLinks.length; i++) {
-  navigationLinks[i].addEventListener("click", function () {
-
-    for (let i = 0; i < pages.length; i++) {
-      if (this.innerHTML.toLowerCase() === pages[i].dataset.page) {
-        pages[i].classList.add("active");
-        navigationLinks[i].classList.add("active");
-        window.scrollTo(0, 0);
-      } else {
-        pages[i].classList.remove("active");
-        navigationLinks[i].classList.remove("active");
+const revealObserver = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("is-visible");
       }
-    }
+    });
+  },
+  { threshold: 0.26 }
+);
 
-  });
-}
+sections.forEach((section) => revealObserver.observe(section));
+
+const activeObserver = new IntersectionObserver(
+  (entries) => {
+    const visible = entries
+      .filter((entry) => entry.isIntersecting)
+      .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+    if (!visible) return;
+
+    navLinks.forEach((link) => {
+      link.classList.toggle("is-active", link.getAttribute("href") === `#${visible.target.id}`);
+    });
+  },
+  {
+    rootMargin: "-38% 0px -52% 0px",
+    threshold: [0.12, 0.35, 0.65],
+  }
+);
+
+sections.forEach((section) => activeObserver.observe(section));
+
+const getSnapOffset = () => {
+  const rawValue = getComputedStyle(document.documentElement).getPropertyValue("--snap-offset");
+  return Number.parseFloat(rawValue) || 92;
+};
+
+const getCurrentSectionIndex = () => {
+  const offset = getSnapOffset();
+  return sections.reduce((closestIndex, section, index) => {
+    const currentDistance = Math.abs(section.getBoundingClientRect().top - offset);
+    const closestDistance = Math.abs(sections[closestIndex].getBoundingClientRect().top - offset);
+    return currentDistance < closestDistance ? index : closestIndex;
+  }, 0);
+};
+
+let snapLocked = false;
+
+const snapToSection = (index) => {
+  const nextSection = sections[Math.max(0, Math.min(index, sections.length - 1))];
+
+  if (!nextSection) return;
+
+  snapLocked = true;
+  nextSection.scrollIntoView({ block: "start", behavior: "smooth" });
+
+  window.setTimeout(() => {
+    snapLocked = false;
+  }, 820);
+};
+
+window.addEventListener(
+  "wheel",
+  (event) => {
+    if (!desktopSnap.matches || reducedMotion.matches || Math.abs(event.deltaY) < 24) return;
+
+    event.preventDefault();
+
+    if (snapLocked) return;
+
+    const direction = event.deltaY > 0 ? 1 : -1;
+    snapToSection(getCurrentSectionIndex() + direction);
+  },
+  { passive: false }
+);
+
+window.addEventListener("keydown", (event) => {
+  if (!desktopSnap.matches || reducedMotion.matches || snapLocked) return;
+
+  const keys = ["ArrowDown", "PageDown", "ArrowUp", "PageUp"];
+  if (!keys.includes(event.key)) return;
+
+  event.preventDefault();
+  const direction = event.key === "ArrowDown" || event.key === "PageDown" ? 1 : -1;
+  snapToSection(getCurrentSectionIndex() + direction);
+});
